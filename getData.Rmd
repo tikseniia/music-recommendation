@@ -1,0 +1,79 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+require(httr)
+library(jsonlite)
+library(digest)
+library(dplyr)
+
+# GET TOKEN 1 (if it doesn't work - use the 2nd method)
+
+resp <- GET("http://www.last.fm/api/auth/?api_key=aeeeca3484217e70ed731b0e26290c0c")
+
+token <- resp$headers$`set-cookie` 
+token <- unlist(strsplit(token, "="))[2]
+token <- unlist(strsplit(token, ";"))[1]
+
+# GET TOKEN 2
+
+browseURL("http://www.last.fm/api/auth/?api_key=aeeeca3484217e70ed731b0e26290c0c")
+token <- "eWsMjC7NZWBHkh9RBnRF_gqyYNgbIs-G" #paste token from korelskk.ru url here
+
+# GET SESSION
+
+api_signature = digest("api_key=aeeeca3484217e70ed731b0e26290c0cmethodauth.getSessiontokenywy8ynfEElBQz36UaCkusuYs3V-mYARqf63ab8a0b44d9244348d9fd72435597d", algo="md5")
+
+url <- gsub(" ", "", paste("http://www.last.fm/api/auth/?api_key=aeeeca3484217e70ed731b0e26290c0c&token=", token, "&sig_key=", api_signature, "&method=auth.getSession"))
+browseURL(url)
+
+```
+
+```{r}
+# GET TOP TRACKS
+# documentation - https://www.last.fm/api/show/chart.getTopTracks
+
+tracks <- data.frame()
+
+for (i in 101:102) {
+  urlTopTracks <- gsub(" ", "", paste("http://ws.audioscrobbler.com/2.0/?method=chart.getTopTracks&api_key=aeeeca3484217e70ed731b0e26290c0c&page=", i, "perPage=200&format=json"))
+  topTracks <- jsonlite::fromJSON(urlTopTracks)
+  topTracks <- as.data.frame(topTracks) 
+  
+  topTracks$artist.name <- topTracks$tracks.track.artist$name
+  topTracks$artist.mbid <- topTracks$tracks.track.artist$mbid
+  topTracks$artist.url <- topTracks$tracks.track.artist$url
+  topTracks <- topTracks[, c(1, 2, 3, 4, 6, 10, 11, 12, 13, 14, 15, 16)]
+
+  tracks <- bind_rows(tracks, topTracks)
+}
+
+saveRDS(tracks, "tracks_101-500.rds")
+```
+
+```{r}
+# TOP TRACKS WITH TAGS
+
+tracksWithTags <- tracks
+tracksWithTags$tags <- 0
+tracksWithTags$tagsCount<- 0
+
+for (i in 6000:nrow(tracksWithTags)) {
+  urlWithTags <- gsub("= ", "=", paste("http://ws.audioscrobbler.com/2.0/?method=track.getTopTags&api_key=aeeeca3484217e70ed731b0e26290c0c&artist=", tracksWithTags$artist.name[i], "&track=", tracksWithTags$tracks.track.name[i], "&format=json"))
+  urlWithTags <- gsub(" &", "&", urlWithTags)
+
+  tags <- try(jsonlite::fromJSON(URLencode(urlWithTags)))
+  
+  if (class(tags) != "try-error") {
+    if (!is.null(tags$toptags$tag$name)) {
+      tags <- as.data.frame(tags)
+      tracksWithTags$tags[i] <- list(tags$toptags.tag.name)
+      tracksWithTags$tagsCount[i] <- list(tags$toptags.tag.count)
+    }
+  }  
+}
+
+saveRDS(tracksWithTags, "tracksWithTags.rds")
+```
