@@ -69,7 +69,7 @@ saveRDS(tracksWithTags, "data/tracksWithTags_101-200.rds") # same nums as in 55
 
 tracksRussian <- data.frame()
 
-for (i in 1:5) { #change nums here
+for (i in 151:200) { #change nums here
   urlTopTracks <- gsub(" ", "", paste("http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=russian&api_key=aeeeca3484217e70ed731b0e26290c0c&page=", i, "&perPage=200&format=json"))
   topTracks <- jsonlite::fromJSON(urlTopTracks)
   topTracks <- as.data.frame(topTracks) 
@@ -82,5 +82,30 @@ for (i in 1:5) { #change nums here
   tracksRussian <- bind_rows(tracksRussian, topTracks)
 }
 
-saveRDS(tracksRussian, "data/tracks_russian_1-200.rds") # change nums here (same as in 72)
+saveRDS(tracksRussian, "data/tracksRussian_1-200.rds") # change nums here (same as in 72)
+```
+
+```{r}
+# TOP RUSSIAN TRACKS WITH TAGS
+
+tracksWithTags <- tracksRussian
+tracksWithTags$tags <- 0
+tracksWithTags$tagsCount<- 0
+
+for (i in 1:nrow(tracksWithTags)) { #change nums here
+  urlWithTags <- gsub("= ", "=", paste("http://ws.audioscrobbler.com/2.0/?method=track.getTopTags&api_key=aeeeca3484217e70ed731b0e26290c0c&artist=", tracksWithTags$artist.name[i], "&track=", tracksWithTags$tracks.track.name[i], "&format=json"))
+  urlWithTags <- gsub(" &", "&", urlWithTags)
+
+  tags <- try(jsonlite::fromJSON(URLencode(urlWithTags)))
+  
+  if (class(tags) != "try-error") {
+    if (!is.null(tags$toptags$tag$name)) {
+      tags <- as.data.frame(tags)
+      tracksWithTags$tags[i] <- list(tags$toptags.tag.name)
+      tracksWithTags$tagsCount[i] <- list(tags$toptags.tag.count)
+    }
+  }  
+}
+
+saveRDS(tracksWithTags, "data/russianTracksWithTags_1-200.rds") # same nums as in 95
 ```
