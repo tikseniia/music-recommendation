@@ -70,7 +70,7 @@ saveRDS(tracksWithTags, "data/tracksWithTags_101-200.rds") # same nums as in 55
 tracksRussian <- data.frame()
 
 for (i in 1:5) { #change nums here
-  urlTopTracks <- gsub(" ", "", paste("http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=russian&api_key=aeeeca3484217e70ed731b0e26290c0c&page=", i, "perPage=200&format=json"))
+  urlTopTracks <- gsub(" ", "", paste("http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=russian&api_key=aeeeca3484217e70ed731b0e26290c0c&page=", i, "&perPage=200&format=json"))
   topTracks <- jsonlite::fromJSON(urlTopTracks)
   topTracks <- as.data.frame(topTracks) 
   
