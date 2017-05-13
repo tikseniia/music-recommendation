@@ -30,7 +30,7 @@ for (i in 1:200) { #change nums here
   topTracks$artist.name <- topTracks$tracks.track.artist$name
   topTracks$artist.mbid <- topTracks$tracks.track.artist$mbid
   topTracks$artist.url <- topTracks$tracks.track.artist$url
-  topTracks <- topTracks[, c(1, 2, 3, 4, 6, 10, 11, 12, 13, 14, 15, 16)]
+  topTracks <- topTracks[, c(1, 2, 4, 10, 11, 12, 13, 14, 15, 16)]
 
   tracks <- bind_rows(tracks, topTracks)
 }
@@ -67,9 +67,9 @@ saveRDS(tracksWithTags, "data/tracksWithTags_101-200.rds") # same nums as in 55
 # GET TOP TRACKS WITH TAG 'RUSSIAN'
 # documentation - https://www.last.fm/api/show/tag.getTopTracks
 
-tracks_russian <- data.frame()
+tracksRussian <- data.frame()
 
-for (i in 1:200) { #change nums here
+for (i in 1:5) { #change nums here
   urlTopTracks <- gsub(" ", "", paste("http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=russian&api_key=aeeeca3484217e70ed731b0e26290c0c&page=", i, "perPage=200&format=json"))
   topTracks <- jsonlite::fromJSON(urlTopTracks)
   topTracks <- as.data.frame(topTracks) 
@@ -79,8 +79,8 @@ for (i in 1:200) { #change nums here
   topTracks$artist.url <- topTracks$tracks.track.artist$url
   topTracks <- topTracks[, c(1, 2, 3, 4, 6, 10, 11, 12, 13, 14, 15, 16)]
 
-  tracks_russian <- bind_rows(tracks_russian, topTracks)
+  tracksRussian <- bind_rows(tracksRussian, topTracks)
 }
 
-saveRDS(tracks, "data/tracks_russian_1-200.rds") # change nums here (same as in 32)
+saveRDS(tracksRussian, "data/tracks_russian_1-200.rds") # change nums here (same as in 72)
 ```
