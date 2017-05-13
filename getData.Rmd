@@ -12,14 +12,7 @@ library(dplyr)
 # GET TOKEN
 
 browseURL("http://www.last.fm/api/auth/?api_key=aeeeca3484217e70ed731b0e26290c0c")
-token <- "eWsMjC7NZWBHkh9RBnRF_gqyYNgbIs-G" #paste token from korelskk.ru url here
-
-# GET SESSION
-
-api_signature = digest("api_key=aeeeca3484217e70ed731b0e26290c0cmethodauth.getSessiontokenywy8ynfEElBQz36UaCkusuYs3V-mYARqf63ab8a0b44d9244348d9fd72435597d", algo="md5")
-
-url <- gsub(" ", "", paste("http://www.last.fm/api/auth/?api_key=aeeeca3484217e70ed731b0e26290c0c&token=", token, "&sig_key=", api_signature, "&method=auth.getSession"))
-browseURL(url)
+token <- "5WLHnDql76FfV-cgmEAEuEaiB8w45ENN" #paste token from korelskk.ru url here
 
 ```
 
@@ -29,7 +22,7 @@ browseURL(url)
 
 tracks <- data.frame()
 
-for (i in 101:102) { #change nums here
+for (i in 1:200) { #change nums here
   urlTopTracks <- gsub(" ", "", paste("http://ws.audioscrobbler.com/2.0/?method=chart.getTopTracks&api_key=aeeeca3484217e70ed731b0e26290c0c&page=", i, "perPage=200&format=json"))
   topTracks <- jsonlite::fromJSON(urlTopTracks)
   topTracks <- as.data.frame(topTracks) 
@@ -42,7 +35,7 @@ for (i in 101:102) { #change nums here
   tracks <- bind_rows(tracks, topTracks)
 }
 
-saveRDS(tracks, "tracks_101-500.rds") # change nums here (same as in 32)
+saveRDS(tracks, "data/tracks_101-500.rds") # change nums here (same as in 32)
 ```
 
 ```{r}
@@ -52,7 +45,7 @@ tracksWithTags <- tracks
 tracksWithTags$tags <- 0
 tracksWithTags$tagsCount<- 0
 
-for (i in 6000:nrow(tracksWithTags)) { #change nums here
+for (i in 1:nrow(tracksWithTags)) { #change nums here
   urlWithTags <- gsub("= ", "=", paste("http://ws.audioscrobbler.com/2.0/?method=track.getTopTags&api_key=aeeeca3484217e70ed731b0e26290c0c&artist=", tracksWithTags$artist.name[i], "&track=", tracksWithTags$tracks.track.name[i], "&format=json"))
   urlWithTags <- gsub(" &", "&", urlWithTags)
 
@@ -67,5 +60,27 @@ for (i in 6000:nrow(tracksWithTags)) { #change nums here
   }  
 }
 
-saveRDS(tracksWithTags, "tracksWithTags.rds")
+saveRDS(tracksWithTags, "data/tracksWithTags_101-200.rds") # same nums as in 55
+```
+
+```{r}
+# GET TOP TRACKS WITH TAG 'RUSSIAN'
+# documentation - https://www.last.fm/api/show/tag.getTopTracks
+
+tracks_russian <- data.frame()
+
+for (i in 1:200) { #change nums here
+  urlTopTracks <- gsub(" ", "", paste("http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=russian&api_key=aeeeca3484217e70ed731b0e26290c0c&page=", i, "perPage=200&format=json"))
+  topTracks <- jsonlite::fromJSON(urlTopTracks)
+  topTracks <- as.data.frame(topTracks) 
+  
+  topTracks$artist.name <- topTracks$tracks.track.artist$name
+  topTracks$artist.mbid <- topTracks$tracks.track.artist$mbid
+  topTracks$artist.url <- topTracks$tracks.track.artist$url
+  topTracks <- topTracks[, c(1, 2, 3, 4, 6, 10, 11, 12, 13, 14, 15, 16)]
+
+  tracks_russian <- bind_rows(tracks_russian, topTracks)
+}
+
+saveRDS(tracks, "data/tracks_russian_1-200.rds") # change nums here (same as in 32)
 ```
