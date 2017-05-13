@@ -9,15 +9,7 @@ library(jsonlite)
 library(digest)
 library(dplyr)
 
-# GET TOKEN 1 (if it doesn't work - use the 2nd method)
-
-resp <- GET("http://www.last.fm/api/auth/?api_key=aeeeca3484217e70ed731b0e26290c0c")
-
-token <- resp$headers$`set-cookie` 
-token <- unlist(strsplit(token, "="))[2]
-token <- unlist(strsplit(token, ";"))[1]
-
-# GET TOKEN 2
+# GET TOKEN
 
 browseURL("http://www.last.fm/api/auth/?api_key=aeeeca3484217e70ed731b0e26290c0c")
 token <- "eWsMjC7NZWBHkh9RBnRF_gqyYNgbIs-G" #paste token from korelskk.ru url here
@@ -37,7 +29,7 @@ browseURL(url)
 
 tracks <- data.frame()
 
-for (i in 101:102) {
+for (i in 101:102) { #change nums here
   urlTopTracks <- gsub(" ", "", paste("http://ws.audioscrobbler.com/2.0/?method=chart.getTopTracks&api_key=aeeeca3484217e70ed731b0e26290c0c&page=", i, "perPage=200&format=json"))
   topTracks <- jsonlite::fromJSON(urlTopTracks)
   topTracks <- as.data.frame(topTracks) 
@@ -50,7 +42,7 @@ for (i in 101:102) {
   tracks <- bind_rows(tracks, topTracks)
 }
 
-saveRDS(tracks, "tracks_101-500.rds")
+saveRDS(tracks, "tracks_101-500.rds") # change nums here (same as in 32)
 ```
 
 ```{r}
@@ -60,7 +52,7 @@ tracksWithTags <- tracks
 tracksWithTags$tags <- 0
 tracksWithTags$tagsCount<- 0
 
-for (i in 6000:nrow(tracksWithTags)) {
+for (i in 6000:nrow(tracksWithTags)) { #change nums here
   urlWithTags <- gsub("= ", "=", paste("http://ws.audioscrobbler.com/2.0/?method=track.getTopTags&api_key=aeeeca3484217e70ed731b0e26290c0c&artist=", tracksWithTags$artist.name[i], "&track=", tracksWithTags$tracks.track.name[i], "&format=json"))
   urlWithTags <- gsub(" &", "&", urlWithTags)
 
