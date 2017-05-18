@@ -1,0 +1,22 @@
+Data<-readRDS("tracksWithTags.rds")
+
+
+df <- Data
+new_df <- df[0,] 
+
+tdf<-df
+
+df<-tdf
+
+for (i in 1:length(df$tracks.track.name)){
+  tmp_df <- df[i,]
+  if (length(unlist(df$tags))){
+    for (j in 1:length(unlist(df$tags[i]))) {
+      tmp_df$tags<-unlist(df$tags[i])[j]
+      tmp_df$tagsCount<-unlist(df$tagsCount[i])[j]
+      new_df<-rbind(new_df, tmp_df)
+    }
+  } else {
+    new_df<-rbind(new_df, tmp_df[i,])
+  }
+}
