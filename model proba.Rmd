@@ -1,0 +1,146 @@
+---
+title: "Data processing"
+author: "Юлия Медушенко"
+date: "20 05 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+Data<-readRDS("data/tracksWithTags_1-100.rds")
+
+
+df <- Data
+new_df <- df[0,] 
+
+tdf<-df
+
+df<-tdf
+
+for (i in 1:length(df$tracks.track.name)){
+  tmp_df <- df[i,]
+  if (length(unlist(df$tags))){
+    for (j in 1:length(unlist(df$tags[i]))) {
+      tmp_df$tags<-unlist(df$tags[i])[j]
+      tmp_df$tagsCount<-unlist(df$tagsCount[i])[j]
+      new_df<-rbind(new_df, tmp_df)
+    }
+  } else {
+    new_df<-rbind(new_df, tmp_df[i,])
+  }
+}
+
+
+
+new_df_unique<-unique(new_df)
+
+```
+
+Делаю спредом
+
+
+```{r}
+library(tidyr)
+library(dplyr)
+wideData <- spread(new_df_unique, key = tags, value = tagsCount, fill = 0)
+
+itog<-signature(from = "data.frame", to = "realRatingMatrix")
+itog<-itog[,c(3,1,2)]
+itog<-itog[,c(2,1,3)]
+itog1<- as(itog,"realRatingMatrix")
+
+wideData1
+similarity_artists10 <- similarity(wideData1[1:10, ], method = "cosine", which = "artist.name")
+
+
+
+UIMatrix <- sparseMatrix(i = as.integer(as.factor(itog$number)),
+                         j = as.integer(as.factor(itog$tags)),
+                         x = itog$tagsCount
+                        )
+
+dimnames(UIMatrix) <- list(sort(unique(itog$number)),
+                           sort(unique(itog$tags)))
+
+
+rrm<- as( as(UIMatrix, "matrix")   , "realRatingMatrix")
+
+rrm
+
+```
+
+
+
+```{r}
+set.seed(100)
+test_ind <- sample(1:nrow(itog1), size = nrow(itog1)*0.2)
+recc_data_train <- itog1[-test_ind, ]
+recc_data_test <- itog1[test_ind, ]
+```
+
+```{r}
+recommender_models <- recommenderRegistry$get_entries(dataType =
+"realRatingMatrix")
+recommender_models$IBCF_realRatingMatrix$parameters
+```
+```{r}
+recc_model <- Recommender(data = recc_data_train, method = "IBCF",
+parameter = list(k = 30))
+recc_model
+```
+
+```{r}
+model_details <- getModel(recc_model)
+model_details$description
+
+model_details$sim[1:10, 1:10]
+
+recc_predicted <- predict(object = recc_model, newdata = recc_data_test, n = 6)
+recc_predicted
+
+
+
+str(recc_predicted)
+
+
+
+recc_user_1 <- recc_predicted@items[[2]]
+recc_user_1
+
+movies_user_1 <- recc_predicted@itemLabels[recc_user_1]
+movies_user_1
+
+```
+```{r}
+
+wideData1<-wideData[c(1:51),]
+wideData_fuck<-wideData[5]
+wideData1$number<-c(1:51)
+
+
+fuck1<-fuck[,c(5,1871)]
+wide_fuck<-wideData[-c(1:12)]  
+
+?unique
+long_fuck <- gather(wide_fuck, key = tags, value = tagsCount)
+
+?colnames
+new_new_df_unique<-unique(new_df)
+clean<-new_new_df_unique[c(5,13,14)]
+
+clean
+
+clean1<-left_join(clean, fuck1, by="tracks.track.url")
+itog<-clean1[,c(2:4)]
+itog<-na.omit(itog)
+
+
+
+
+
+
+recc_matrix <- sapply(recc_predicted@items, function(x){
+colnames(itog)[x]
+})
+dim(recc_matrix)
+```
+
